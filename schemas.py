@@ -1,48 +1,61 @@
 """
-Database Schemas
-
-Define your MongoDB collection schemas here using Pydantic models.
-These schemas are used for data validation in your application.
+Database Schemas for Alessio Restaurant
 
 Each Pydantic model represents a collection in your database.
-Model name is converted to lowercase for the collection name:
-- User -> "user" collection
-- Product -> "product" collection
-- BlogPost -> "blogs" collection
+Collection name is the lowercase class name.
 """
 
-from pydantic import BaseModel, Field
-from typing import Optional
+from pydantic import BaseModel, Field, EmailStr
+from typing import Optional, List
+from datetime import datetime
 
-# Example schemas (replace with your own):
+# Core domain models
 
-class User(BaseModel):
+class MenuItem(BaseModel):
     """
-    Users collection schema
-    Collection name: "user" (lowercase of class name)
+    Menu items offered by the restaurant
+    Collection: "menuitem"
     """
-    name: str = Field(..., description="Full name")
-    email: str = Field(..., description="Email address")
-    address: str = Field(..., description="Address")
-    age: Optional[int] = Field(None, ge=0, le=120, description="Age in years")
-    is_active: bool = Field(True, description="Whether user is active")
-
-class Product(BaseModel):
-    """
-    Products collection schema
-    Collection name: "product" (lowercase of class name)
-    """
-    title: str = Field(..., description="Product title")
-    description: Optional[str] = Field(None, description="Product description")
+    name: str = Field(..., description="Dish name")
+    description: Optional[str] = Field(None, description="Short description")
     price: float = Field(..., ge=0, description="Price in dollars")
-    category: str = Field(..., description="Product category")
-    in_stock: bool = Field(True, description="Whether product is in stock")
+    category: str = Field(..., description="e.g., Antipasti, Pasta, Pizza, Secondi, Dolci")
+    is_vegan: bool = Field(False)
+    is_spicy: bool = Field(False)
+    image: Optional[str] = Field(None, description="Public image URL")
+    featured: bool = Field(False, description="Show in highlights")
 
-# Add your own schemas here:
-# --------------------------------------------------
+class Reservation(BaseModel):
+    """
+    Guest reservations
+    Collection: "reservation"
+    """
+    name: str = Field(..., description="Guest full name")
+    email: Optional[EmailStr] = Field(None, description="Guest email")
+    phone: str = Field(..., description="Contact number")
+    guests: int = Field(..., ge=1, le=20)
+    date: str = Field(..., description="YYYY-MM-DD")
+    time: str = Field(..., description="HH:MM")
+    notes: Optional[str] = Field(None, description="Special requests")
 
-# Note: The Flames database viewer will automatically:
-# 1. Read these schemas from GET /schema endpoint
-# 2. Use them for document validation when creating/editing
-# 3. Handle all database operations (CRUD) directly
-# 4. You don't need to create any database endpoints!
+class Review(BaseModel):
+    """
+    Guest reviews
+    Collection: "review"
+    """
+    name: str
+    rating: int = Field(..., ge=1, le=5)
+    comment: str
+    source: Optional[str] = Field(None, description="e.g., Google, Yelp")
+    avatar: Optional[str] = None
+
+# Optional: basic marketing capture
+class Newsletter(BaseModel):
+    """
+    Newsletter signups
+    Collection: "newsletter"
+    """
+    email: EmailStr
+    name: Optional[str] = None
+
+# Timestamps are added automatically by database helpers
